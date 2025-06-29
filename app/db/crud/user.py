@@ -34,6 +34,11 @@ class UserService(CrudService):
         async with SQLSessionContext(session_pool=self.session_pool) as (repository, uow):
             return await repository.users.count()
 
+    async def get_by_role(self, role: UserRole) -> list[UserDto]:
+        async with SQLSessionContext(self.session_pool) as (repository, uow):
+            users = await repository.users.filter_by_role(role)
+            return [user.dto() for user in users]
+
     async def get_devs(self) -> list[UserDto]:
         async with SQLSessionContext(self.session_pool) as (repository, uow):
             devs = await repository.users.filter_by_role(UserRole.DEV)

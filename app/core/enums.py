@@ -36,6 +36,12 @@ class BannerFormat(StrEnum):
         }[self]
 
 
+class MediaType(StrEnum):
+    PHOTO = ContentType.PHOTO
+    VIDEO = ContentType.VIDEO
+    DOCUMENT = ContentType.DOCUMENT
+
+
 class BannerName(StrEnum):
     DEFAULT = auto()
     MENU = auto()

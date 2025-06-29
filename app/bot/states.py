@@ -5,6 +5,10 @@ class MainMenu(StatesGroup):
     MAIN = State()
 
 
+class Notification(StatesGroup):
+    CLOSE = State()
+
+
 class Dashboard(StatesGroup):
     MAIN = State()
     STATISTICS = State()

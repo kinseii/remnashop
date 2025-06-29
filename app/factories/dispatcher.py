@@ -7,7 +7,7 @@ from app.factories.services import create_services
 if TYPE_CHECKING:
     from app.core.config import AppConfig
 
-from aiogram import Dispatcher
+from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.base import DefaultKeyBuilder
 from aiogram.fsm.storage.redis import RedisStorage
 from aiogram_dialog import setup_dialogs
@@ -24,22 +24,26 @@ from .remnawave import create_remnawave
 from .session_pool import create_session_pool
 
 
-def create_dispatcher(config: AppConfig) -> Dispatcher:
+def create_dispatcher(bot: Bot, config: AppConfig) -> Dispatcher:
     key_builder = DefaultKeyBuilder(with_destiny=True)
     redis: Redis = create_redis(url=config.redis.dsn())
+
+    middlewares = create_middlewares(config)
+    i18n_middleware = middlewares.inner[0]  # I18nMiddleware is the first in inner middlewares
 
     session_pool = create_session_pool(config)
     remnawave = create_remnawave(config)
     services = create_services(
+        bot=bot,
+        config=config,
         session_pool=session_pool,
         redis=redis,
-        config=config,
+        i18n=i18n_middleware,
     )
-    middlewares = create_middlewares(config)
 
     container = AppContainer(
         config=config,
-        i18n=middlewares.inner[0],  # NOTE: i18n_middleware — first in inner!
+        i18n=i18n_middleware,
         session_pool=session_pool,
         redis=redis,
         remnawave=remnawave,

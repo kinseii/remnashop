@@ -50,5 +50,4 @@ WORKDIR /opt/remnashop
 COPY --from=app-builder $VIRTUAL_ENV $VIRTUAL_ENV
 COPY ./app ./app
 
-ENTRYPOINT ["sh", "-c"]
-CMD ["alembic -c app/db/alembic.ini upgrade head && uvicorn app.__main__:app --host 0.0.0.0 --port 5000"]
+CMD ["sh", "-c", "alembic -c app/db/alembic.ini upgrade head && exec uvicorn app.__main__:app --host 0.0.0.0 --port 5000"]

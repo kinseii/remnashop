@@ -8,7 +8,7 @@ if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
     from app.bot.middlewares import I18nMiddleware
-    from app.bot.services import MaintenanceService
+    from app.bot.services import MaintenanceService, NotificationService
     from app.core.config import AppConfig
     from app.db.crud import (
         UserService,
@@ -22,6 +22,8 @@ from dataclasses import dataclass
 @dataclass
 class ServicesContainer:
     maintenance: MaintenanceService
+    notification: NotificationService
+
     user: UserService
     plan: PlanService
     promocode: PromocodeService

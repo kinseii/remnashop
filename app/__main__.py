@@ -2,7 +2,9 @@ import json
 
 from pydantic import ValidationError
 
+from app.bot.models.containers import AppContainer
 from app.core.config import AppConfig
+from app.core.enums import MaintenanceMode, UserRole
 from app.core.logger import setup_logging
 
 config = AppConfig.get()
@@ -20,7 +22,7 @@ from starlette.middleware.cors import CORSMiddleware
 
 from app.bot.commands import commands_delete, commands_setup
 from app.bot.webhook import webhook_shutdown, webhook_startup
-from app.core.constants import BOT_KEY, HEADER_SECRET_TOKEN
+from app.core.constants import APP_CONTAINER_KEY, BOT_KEY, HEADER_SECRET_TOKEN
 from app.factories import create_bot, create_dispatcher
 
 logger = logging.getLogger(__name__)
@@ -31,14 +33,34 @@ async def lifespan(application: FastAPI) -> AsyncGenerator[None, None]:
     logger.info("Starting application")
 
     bot: Bot = create_bot(token=config.bot.token.get_secret_value())
-    dispatcher: Dispatcher = create_dispatcher(config)
+    dispatcher: Dispatcher = create_dispatcher(bot, config)
+    container: AppContainer = dispatcher.workflow_data[APP_CONTAINER_KEY]
+    notification = container.services.notification
+    maintenance = container.services.maintenance
 
     application.state.bot = bot
     application.state.dispatcher = dispatcher
 
     await webhook_startup(bot, dispatcher, config)
     await commands_setup(bot, config)
-    yield  # TODO: Notify devs for start and maintenance
+
+    mode = await maintenance.get_mode()
+    if mode != MaintenanceMode.OFF:
+        logger.warning(f"Bot in maintenance mode: '{mode}'")
+
+    await notification.notify_by_role(
+        role=UserRole.DEV,
+        text_key="ntf-event-bot-startup",
+        mode=mode,
+    )
+
+    yield
+
+    await notification.notify_by_role(
+        role=UserRole.DEV,
+        text_key="ntf-event-bot-shutdown",
+    )
+
     await commands_delete(bot, config)
     await webhook_shutdown(bot, config)
 

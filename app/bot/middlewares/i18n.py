@@ -40,23 +40,47 @@ class I18nMiddleware(EventTypedMiddleware):
         data: dict[str, Any],
     ) -> Any:
         user: Optional[UserDto] = data.get(USER_KEY)
-        data[I18N_FORMATTER_KEY] = self.get_formatter(user)
+        data[I18N_FORMATTER_KEY] = self.get_formatter(user=user)
         return await handler(event, data)
 
-    def get_locale(self, user: Optional[UserDto] = None) -> FluentLocalization:
-        if user is None:
-            self.logger.debug(f"User not provided. Using default locale: '{self.default_locale}'")
-            return self.locales[self.default_locale]
+    def get_locale(
+        self,
+        user: Optional[UserDto] = None,
+        locale: Optional[Locale] = None,
+    ) -> FluentLocalization:
+        if locale is not None:
+            target_locale = locale
+        elif user is not None and user.language in self.locales:
+            target_locale = user.language
+        else:
+            target_locale = self.default_locale
 
-        if user.language not in self.locales:
-            self.logger.warning(
-                f"Locale '{user.language}' not supported."
-                f"Using default locale: '{self.default_locale}'"
+        if locale is not None:
+            self.logger.debug(f"Using explicitly provided locale: '{target_locale}'")
+        elif user is not None:
+            if user.language in self.locales:
+                # self.logger.debug(f"{format_log_user(user)} Using locale: '{target_locale}'")
+                pass
+            else:
+                self.logger.warning(
+                    f"Locale '{user.language}' for user '{user.id}' not supported. "
+                    f"Using default locale: '{self.default_locale}'"
+                )
+        else:
+            self.logger.debug(f"User not provided. Using default locale: '{self.default_locale}'")
+
+        if target_locale not in self.locales:
+            self.logger.error(
+                f"Resolved locale '{target_locale}' is not available. "
+                f"Falling back to default: '{self.default_locale}'"
             )
             return self.locales[self.default_locale]
 
-        # self.logger.debug(f"{format_log_user(user)} Using locale: '{user.language}'")
-        return self.locales[user.language]
+        return self.locales[target_locale]
 
-    def get_formatter(self, user: Optional[UserDto] = None) -> I18nFormatter:
-        return self.get_locale(user).format_value
+    def get_formatter(
+        self,
+        user: Optional[UserDto] = None,
+        locale: Optional[Locale] = None,
+    ) -> I18nFormatter:
+        return self.get_locale(user=user, locale=locale).format_value
