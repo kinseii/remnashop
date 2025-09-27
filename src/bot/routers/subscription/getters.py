@@ -169,7 +169,7 @@ async def confirm_getter(
         user=user,
         plan=transaction_plan,
         pricing=pricing,
-        purchase_type=PurchaseType.NEW,  # TODO: реализовать разделение платежек
+        purchase_type=PurchaseType.NEW,  # TODO: Implement types logic
         gateway_type=selected_payment_method,
     )
     dialog_manager.dialog_data["payment_id"] = result.payment_id

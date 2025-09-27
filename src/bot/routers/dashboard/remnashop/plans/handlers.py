@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 from typing import Optional
 from uuid import UUID
 
@@ -15,6 +16,7 @@ from src.core.enums import Currency, PlanAvailability, PlanType
 from src.core.utils.adapter import DialogDataAdapter
 from src.core.utils.formatters import format_log_user
 from src.core.utils.message_payload import MessagePayload
+from src.core.utils.time import datetime_now
 from src.infrastructure.database.models.dto import PlanDto, PlanDurationDto, PlanPriceDto, UserDto
 from src.services.notification import NotificationService
 from src.services.plan import PlanService
@@ -47,12 +49,34 @@ async def on_plan_removed(
     callback: CallbackQuery,
     widget: Button,
     sub_manager: SubManager,
+    notification_service: FromDishka[NotificationService],
     plan_service: FromDishka[PlanService],
 ) -> None:
     await sub_manager.load_data()
+    user: UserDto = sub_manager.middleware_data[USER_KEY]
+
     plan_id = int(sub_manager.item_id)
-    await plan_service.delete(plan_id)
-    # TODO: Add action confirmation
+    key = f"delete_confirm_{plan_id}"
+
+    now = datetime_now()
+    last_click_str: str | None = sub_manager.dialog_data.get(key)
+
+    if last_click_str:
+        last_click = datetime.fromisoformat(last_click_str.replace("Z", "+00:00"))
+        if now - last_click < timedelta(seconds=10):
+            await plan_service.delete(plan_id)
+            await notification_service.notify_user(
+                user=user,
+                payload=MessagePayload(i18n_key="ntf-plan-deleted-success"),
+            )
+            sub_manager.dialog_data.pop(key, None)
+            return
+
+    sub_manager.dialog_data[key] = now.isoformat()
+    await notification_service.notify_user(
+        user=user,
+        payload=MessagePayload(i18n_key="ntf-plan-click-for-delete"),
+    )
 
 
 @inject

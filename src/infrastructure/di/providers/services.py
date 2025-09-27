@@ -1,7 +1,7 @@
 from dishka import Provider, Scope, provide
 
+from src.services.access import AccessService
 from src.services.command import CommandService
-from src.services.maintenance import MaintenanceService
 from src.services.notification import NotificationService
 from src.services.payment_gateway import PaymentGatewayService
 from src.services.plan import PlanService
@@ -17,7 +17,7 @@ class ServicesProvider(Provider):
     scope = Scope.APP
 
     command_service = provide(source=CommandService)
-    maintenance_service = provide(source=MaintenanceService)
+    access_service = provide(source=AccessService)
     notification_service = provide(source=NotificationService, scope=Scope.REQUEST)
     gateway_service = provide(source=PaymentGatewayService, scope=Scope.REQUEST)
     plan_service = provide(source=PlanService, scope=Scope.REQUEST)

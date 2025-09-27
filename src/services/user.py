@@ -11,6 +11,7 @@ from src.core.config import AppConfig
 from src.core.constants import (
     RECENT_ACTIVITY_MAX_COUNT,
     RECENT_REGISTERED_MAX_COUNT,
+    REMNASHOP_TAG,
     TIME_1M,
     TIME_10M,
 )
@@ -208,7 +209,6 @@ class UserService(BaseService):
         return users
 
     async def search_users(self, message: Message) -> list[UserDto]:
-        # TODO: search rs_
         found_users = []
         if message.forward_from and not message.forward_from.is_bot:
             target_telegram_id = message.forward_from.id
@@ -226,6 +226,14 @@ class UserService(BaseService):
 
                 if single_user:
                     found_users.append(single_user)
+            elif search_query.startswith(REMNASHOP_TAG):
+                try:
+                    target_id = int(search_query.split("_", maxsplit=1)[1])
+                    single_user = await self.get(telegram_id=target_id)
+                    if single_user:
+                        found_users.append(single_user)
+                except (IndexError, ValueError):
+                    pass
             else:
                 found_users = await self.get_by_partial_name(query=search_query)
 

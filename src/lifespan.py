@@ -13,8 +13,8 @@ from src.infrastructure.taskiq.tasks.notifications import (
     send_remnashop_notification_task,
     send_system_notification_task,
 )
+from src.services.access import AccessService
 from src.services.command import CommandService
-from src.services.maintenance import MaintenanceService
 from src.services.webhook import WebhookService
 
 
@@ -26,7 +26,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
     webhook_service: WebhookService = await container.get(WebhookService)
     command_service: CommandService = await container.get(CommandService)
-    maintenance_service: MaintenanceService = await container.get(MaintenanceService)
+    access_service: AccessService = await container.get(AccessService)
 
     allowed_updates = dispatcher.resolve_used_update_types()
     webhook_info: WebhookInfo = await webhook_service.setup(allowed_updates)
@@ -53,13 +53,13 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     logger.info(f"Inline Mode  - {states[bot_info.supports_inline_queries]}")
     logger.info("-----------------------")
 
-    maintenance_mode = await maintenance_service.get_current_mode()
-    logger.warning(f"Bot in maintenance mode: '{maintenance_mode}'")
+    access_mode = await access_service.get_current_mode()
+    logger.warning(f"Bot in access mode: '{access_mode}'")
 
     await send_system_notification_task.kiq(
         ntf_type=SystemNotificationType.BOT_LIFETIME,
         i18n_key="ntf-event-bot-startup",
-        i18n_kwargs={"mode": maintenance_mode},
+        i18n_kwargs={"mode": access_mode},
     )
     await send_remnashop_notification_task.kiq()
 

@@ -10,8 +10,8 @@ from src.infrastructure.di import create_container
 from .broker import broker
 
 
-# TODO: worker id in logs
-# TODO: middleware for handle errors
+# TODO: Worker id in logs
+# TODO: Middleware for handle errors
 def worker() -> RedisStreamBroker:
     setup_logger()
 

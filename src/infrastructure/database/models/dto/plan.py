@@ -29,7 +29,7 @@ class PlanDto(TrackableDto):
     traffic_limit: int = 100
     device_limit: int = 1
 
-    # TODO: add tag and traffic_reset_strategy
+    # TODO: Add tag and traffic_reset_strategy
 
     availability: PlanAvailability = PlanAvailability.ALL
     allowed_user_ids: list[int] = []

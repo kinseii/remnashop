@@ -112,3 +112,11 @@ gateway-type = { $gateway_type ->
     [HELEKET] Heleket
     *[OTHER] { $gateway_type }
 }
+
+access-mode = { $access_mode ->
+    [ALL] 🟢 Разрешен для всех
+    [INVITED] ⚪ Разрешен для приглашенных
+    [PURCHASE] 🟠 Запрещены покупки
+    [BLOCKED] 🔴 Запрещены любые действия
+    *[OTHER] { $access_mode }
+}

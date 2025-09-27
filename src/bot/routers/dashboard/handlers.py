@@ -6,21 +6,21 @@ from dishka.integrations.aiogram_dialog import inject
 from loguru import logger
 
 from src.core.constants import USER_KEY
-from src.core.enums import MaintenanceMode
+from src.core.enums import AccessMode
 from src.core.utils.formatters import format_log_user
 from src.infrastructure.database.models.dto import UserDto
-from src.services.maintenance import MaintenanceService
+from src.services.access import AccessService
 
 
 @inject
-async def on_maintenance_mode_selected(
+async def on_access_mode_selected(
     callback: CallbackQuery,
-    widget: Select[MaintenanceMode],
+    widget: Select[AccessMode],
     dialog_manager: DialogManager,
-    selected_mode: MaintenanceMode,
-    maintenance_service: FromDishka[MaintenanceService],
+    selected_mode: AccessMode,
+    access_service: FromDishka[AccessService],
 ) -> None:
     user: UserDto = dialog_manager.middleware_data[USER_KEY]
 
-    await maintenance_service.set_mode(mode=selected_mode)
-    logger.info(f"{format_log_user(user)} Set maintenance mode -> '{selected_mode}'")
+    await access_service.set_mode(mode=selected_mode)
+    logger.info(f"{format_log_user(user)} Set access mode -> '{selected_mode}'")

@@ -5,7 +5,7 @@ from dishka import FromDishka
 from dishka.integrations.aiogram_dialog import inject
 
 from src.infrastructure.database.models.dto import UserDto
-from src.services.maintenance import MaintenanceService
+from src.services.access import AccessService
 
 
 async def dashboard_getter(
@@ -19,15 +19,15 @@ async def dashboard_getter(
 
 
 @inject
-async def maintenance_getter(
+async def access_getter(
     dialog_manager: DialogManager,
-    maintenance_service: FromDishka[MaintenanceService],
+    access_service: FromDishka[AccessService],
     **kwargs: Any,
 ) -> dict[str, Any]:
-    current_mode = await maintenance_service.get_current_mode()
-    modes = await maintenance_service.get_available_modes()
+    current_mode = await access_service.get_current_mode()
+    modes = await access_service.get_available_modes()
 
     return {
-        "status": current_mode,
+        "access_mode": current_mode,
         "modes": modes,
     }

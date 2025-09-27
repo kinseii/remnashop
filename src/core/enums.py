@@ -178,15 +178,11 @@ class PaymentGatewayType(UpperStrEnum):
     # TRIBUTE = auto()
 
 
-class MaintenanceMode(UpperStrEnum):
-    GLOBAL = auto()
-    PURCHASE = auto()
-    OFF = auto()
-
-    # BotAccessMode.ALL: "Разрешен для всех",
-    # BotAccessMode.INVITED: "Разрешен для приглашенных",
-    # BotAccessMode.NO_PURCHASES: "Запрещены покупки",
-    # BotAccessMode.BLOCKED: "Запрещены любые действия",
+class AccessMode(UpperStrEnum):
+    ALL = auto()  # Разрешен для всех
+    INVITED = auto()  # Разрешен для приглашенных
+    PURCHASE = auto()  # Запрещены покупки
+    BLOCKED = auto()  # Запрещены любые действия
 
 
 class Command(Enum):

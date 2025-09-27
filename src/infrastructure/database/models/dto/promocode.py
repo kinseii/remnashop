@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Optional
 
 if TYPE_CHECKING:
+    from .plan import PlanSnapshotDto
     from .user import BaseUserDto
 
 from datetime import datetime, timedelta
@@ -23,6 +24,7 @@ class PromocodeDto(TrackableDto):
     is_active: bool
 
     reward: Optional[int] = None
+    plan: "Optional[PlanSnapshotDto]" = None
 
     lifetime: Optional[int] = None
     max_activations: Optional[int] = None

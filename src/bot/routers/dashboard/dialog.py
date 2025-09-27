@@ -11,10 +11,10 @@ from src.bot.states import (
     MainMenu,
 )
 from src.bot.widgets import Banner, I18nFormat, IgnoreUpdate
-from src.core.enums import BannerName, MaintenanceMode
+from src.core.enums import AccessMode, BannerName
 
-from .getters import dashboard_getter, maintenance_getter
-from .handlers import on_maintenance_mode_selected
+from .getters import access_getter, dashboard_getter
+from .handlers import on_access_mode_selected
 from .remnawave.handlers import start_remnawave_window
 
 dashboard = Window(
@@ -49,9 +49,9 @@ dashboard = Window(
     ),
     Row(
         SwitchTo(
-            text=I18nFormat("btn-dashboard-maintenance"),
-            id="maintenance",
-            state=Dashboard.MAINTENANCE,
+            text=I18nFormat("btn-dashboard-access"),
+            id="access",
+            state=Dashboard.ACCESS,
         ),
     ),
     Row(
@@ -95,17 +95,17 @@ statistics = Window(
     state=Dashboard.STATISTICS,
 )
 
-maintenance = Window(
+access = Window(
     Banner(BannerName.DASHBOARD),
-    I18nFormat("msg-maintenance-main"),
+    I18nFormat("msg-access-main"),
     Column(
         Select(
-            text=I18nFormat("btn-maintenance-mode", mode=F["item"]),
+            text=I18nFormat("btn-access-mode", access_mode=F["item"]),
             id="mode",
             item_id_getter=lambda item: item.value,
             items="modes",
-            type_factory=MaintenanceMode,
-            on_click=on_maintenance_mode_selected,
+            type_factory=AccessMode,
+            on_click=on_access_mode_selected,
         ),
     ),
     Row(
@@ -116,12 +116,12 @@ maintenance = Window(
         ),
     ),
     IgnoreUpdate(),
-    state=Dashboard.MAINTENANCE,
-    getter=maintenance_getter,
+    state=Dashboard.ACCESS,
+    getter=access_getter,
 )
 
 router = Dialog(
     dashboard,
     statistics,
-    maintenance,
+    access,
 )

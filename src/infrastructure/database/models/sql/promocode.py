@@ -7,10 +7,11 @@ if TYPE_CHECKING:
 
 from datetime import datetime
 
-from sqlalchemy import BigInteger, Boolean, DateTime, Enum, ForeignKey, Integer, String
+from sqlalchemy import JSON, BigInteger, Boolean, DateTime, Enum, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.core.enums import PromocodeRewardType
+from src.infrastructure.database.models.dto import PlanSnapshotDto
 
 from .base import BaseSql
 from .timestamp import NOW_FUNC, TimestampMixin
@@ -29,7 +30,7 @@ class Promocode(BaseSql, TimestampMixin):
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False)
 
     reward: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
-    # TODO: Implement storing plan for activation (relationship plan_duration?)
+    plan: Mapped[PlanSnapshotDto] = mapped_column(JSON, nullable=True)
 
     lifetime: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     max_activations: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)

@@ -71,7 +71,7 @@ class HeleketGatewaySettingsDto(GatewaySettingsDto):
     key: Optional[SecretStr] = None
 
 
-AnyGatewaySettingsDto = Union[  # TODO: Move to types
+AnyGatewaySettingsDto = Union[
     # TelegramStarsGatewaySettingsDto,
     YookassaGatewaySettingsDto,
     YoomoneyGatewaySettingsDto,

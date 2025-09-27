@@ -177,7 +177,7 @@ class PaymentGatewayService(BaseService):
 
         logger.info(f"Payment succeeded '{payment_id}' from '{transaction.user.telegram_id}'")
 
-        # TODO: refferal
+        # TODO: Add refferal logic
 
         i18n_keys = {
             PurchaseType.NEW: "ntf-event-subscription-new",
@@ -186,26 +186,26 @@ class PaymentGatewayService(BaseService):
         }
         i18n_key = i18n_keys[transaction.purchase_type]
 
-        # TODO: Simplify
-        extra_i18n_kwargs = {}
         if transaction.purchase_type == PurchaseType.CHANGE:
             subscription = await self.subscription_service.get_current(transaction.user.telegram_id)
+            plan = subscription.plan if subscription else None
+
             extra_i18n_kwargs = {
-                "previous_plan_name": subscription.plan.name if subscription else "N/A",
+                "previous_plan_name": plan.name if plan else "N/A",
                 "previous_plan_type": {
                     "key": "plan-type",
-                    "plan_type": subscription.plan.type if subscription else "N/A",
+                    "plan_type": plan.type if plan else "N/A",
                 },
-                "previous_plan_traffic_limit": i18n_format_limit(subscription.plan.traffic_limit)
-                if subscription
-                else "N/A",
-                "previous_plan_device_limit": i18n_format_limit(subscription.plan.device_limit)
-                if subscription
-                else "N/A",
-                "previous_plan_duration": i18n_format_days(subscription.plan.duration)
-                if subscription
-                else "N/A",
+                "previous_plan_traffic_limit": (
+                    i18n_format_limit(plan.traffic_limit) if plan else "N/A"
+                ),
+                "previous_plan_device_limit": (
+                    i18n_format_limit(plan.device_limit) if plan else "N/A"
+                ),
+                "previous_plan_duration": (i18n_format_days(plan.duration) if plan else "N/A"),
             }
+        else:
+            extra_i18n_kwargs = {}
 
         i18n_kwargs = {
             "payment_id": transaction.payment_id,
@@ -231,7 +231,7 @@ class PaymentGatewayService(BaseService):
         )
         await create_subscription_task.kiq(transaction.user, transaction.plan)
         await redirect_to_main_menu_task.kiq(transaction.user)
-        # TODO: redirect to succeeded payment window
+        # TODO: Redirect to succeeded payment window
         logger.debug("Called tasks for payment")
 
     async def handle_payment_canceled(self, payment_id: UUID) -> None:

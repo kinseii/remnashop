@@ -36,15 +36,11 @@ msg-statistics-main = <b>📊 Статистика</b>
 msg-users-main = <b>👥 Пользователи</b>
 msg-broadcast-main = <b>📢 Рассылка</b>
 msg-promocodes-main = <b>🎟 Промокоды</b>
-msg-maintenance-main =
-    <b>🚧 Режим обслуживания</b>
+msg-access-main =
+    <b>🚧 Режим доступа</b>
     
-    <b>Статус</b>: { $status ->
-    [GLOBAL] 🔴 Включен (глобальный)
-    [PURCHASE] 🟠 Включен (платежи)
-    *[OFF] ⚪ Выключен
-    }
-
+    <b>Статус</b>: { access-mode }
+    
 
 # Users
 msg-users-search =

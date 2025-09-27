@@ -42,13 +42,13 @@ class SystemNotificationDto(NotificationSettingsMixin):
     user_registered: bool = Field(default=True)
     subscription: bool = Field(default=True)
     promocode_activated: bool = Field(default=True)
-    # TODO: torrent_block
-    # TODO: traffic_overuse
+    # TODO: Add torrent_block
+    # TODO: Add traffic_overuse
 
 
 class UserNotificationDto(NotificationSettingsMixin):
     # subscription_3_days_left: bool = Field(default=True)
     # subscription_24_hours_left: bool = Field(default=True)
     # subscription_ended: bool = Field(default=True)
-    # available_after_maintenance: bool = Field(default=True)
+    # available_after_access: bool = Field(default=True)
     pass

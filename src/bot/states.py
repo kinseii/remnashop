@@ -20,7 +20,7 @@ class Subscription(StatesGroup):
 class Dashboard(StatesGroup):
     MAIN = State()
     STATISTICS = State()
-    MAINTENANCE = State()
+    ACCESS = State()
 
 
 class DashboardBroadcast(StatesGroup):

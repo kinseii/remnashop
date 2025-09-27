@@ -21,7 +21,7 @@ btn-dashboard-statistics = 📊 Статистика
 btn-dashboard-users = 👥 Пользователи
 btn-dashboard-broadcast = 📢 Рассылка
 btn-dashboard-promocodes = 🎟 Промокоды
-btn-dashboard-maintenance = 🚧 Режим обслуживания
+btn-dashboard-access = 🚧 Режим доступа
 btn-dashboard-remnawave = 🌊 RemnaWave
 btn-dashboard-remnashop = 🛍 RemnaShop
 
@@ -69,12 +69,8 @@ btn-promocodes-delete = 🗑️ Удалить
 btn-promocodes-edit = ✏️ Редактировать
 
 
-# Maintenance
-btn-maintenance-mode = { $mode ->
-    [GLOBAL] 🔴 Глобальный
-    [PURCHASE] 🟠 Платежи
-    *[OFF] ⚪ Выключить
-    }
+# Access
+btn-access-mode = { access-mode }
 
 
 # RemnaShop
