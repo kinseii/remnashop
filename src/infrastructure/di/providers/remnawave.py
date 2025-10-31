@@ -17,5 +17,9 @@ class RemnawaveProvider(Provider):
             token=config.remnawave.token.get_secret_value(),
             caddy_token=config.remnawave.caddy_token.get_secret_value(),
             ssl_ignore=False,
-            custom_headers=None,
+            custom_headers={
+                "x-forwarded-proto": "https",
+                "x-forwarded-for": "127.0.0.1",
+                "X-Remnawave-Client-Type": "browser",
+            },
         )

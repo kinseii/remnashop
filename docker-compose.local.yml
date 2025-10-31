@@ -20,7 +20,7 @@ services:
       - remnashop-db-data:/var/lib/postgresql/data
 
     networks:
-      - remnashop-network
+      - remnawave-network
 
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
@@ -41,7 +41,7 @@ services:
       - remnashop-redis-data:/data
 
     networks:
-      - remnashop-network
+      - remnawave-network
 
     healthcheck:
       test: ["CMD", "valkey-cli", "ping"]
@@ -72,9 +72,10 @@ services:
       - ./src:/opt/remnashop/src
       - ./logs:/opt/remnashop/logs
       - ./assets:/opt/remnashop/assets
+      - ./assets_backup:/opt/remnashop/assets_backup
 
     networks:
-      - remnashop-network
+      - remnawave-network
     
 
   remnashop-taskiq-worker:
@@ -92,8 +93,8 @@ services:
 
 
 networks:
-  remnashop-network:
-    name: remnashop-network
+  remnawave-network:
+    name: remnawave-network
     driver: bridge
     external: false
 

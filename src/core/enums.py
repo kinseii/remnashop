@@ -67,14 +67,14 @@ class MessageEffect(UpperStrEnum):
     POOP = "5046589136895476101"  #     💩
 
 
-class BannerName(UpperStrEnum):
+class BannerName(StrEnum):
     DEFAULT = auto()
     MENU = auto()
     DASHBOARD = auto()
     SUBSCRIPTION = auto()
 
 
-class BannerFormat(UpperStrEnum):
+class BannerFormat(StrEnum):
     JPG = auto()
     JPEG = auto()
     PNG = auto()
