@@ -33,7 +33,7 @@ hdr-subscription = { $is_trial ->
 hdr-plan = <b>📦 План:</b>
 hdr-payment = <b>💰 Платеж:</b>
 hdr-error = <b>⚠️ Ошибка:</b>
-hdr-node = <b>🖥 Нода:</b
+hdr-node = <b>🖥 Нода:</b>
 hdr-hwid = <b>📱 Устройство:</b>
 
 # Fragments

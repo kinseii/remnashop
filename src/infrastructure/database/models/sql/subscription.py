@@ -46,6 +46,7 @@ class Subscription(BaseSql, TimestampMixin):
     traffic_limit: Mapped[int] = mapped_column(Integer, nullable=False)
     device_limit: Mapped[int] = mapped_column(Integer, nullable=False)
     internal_squads: Mapped[list[UUID]] = mapped_column(ARRAY(PG_UUID), nullable=False)
+    external_squad: Mapped[UUID] = mapped_column(PG_UUID, nullable=True)
 
     expire_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     url: Mapped[str] = mapped_column(String, nullable=False)

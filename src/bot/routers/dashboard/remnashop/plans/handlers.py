@@ -19,7 +19,7 @@ from src.core.enums import Currency, PlanAvailability, PlanType
 from src.core.utils.adapter import DialogDataAdapter
 from src.core.utils.formatters import format_user_log as log
 from src.core.utils.message_payload import MessagePayload
-from src.core.utils.validators import is_double_click
+from src.core.utils.validators import is_double_click, parse_int
 from src.infrastructure.database.models.dto import PlanDto, PlanDurationDto, PlanPriceDto, UserDto
 from src.services.notification import NotificationService
 from src.services.plan import PlanService
@@ -459,9 +459,9 @@ async def on_duration_input(
     user: UserDto = dialog_manager.middleware_data[USER_KEY]
     logger.debug(f"{log(user)} Attempted to add new plan duration")
 
-    if message.text is None or not (
-        message.text.isdigit() and int(message.text) > 0 or int(message.text) == -1
-    ):
+    number = parse_int(message.text)
+
+    if number is None or not (number > 0 or number == -1):
         logger.warning(f"{log(user)} Provided invalid duration input: '{message.text}'")
         await notification_service.notify_user(
             user=user,
@@ -469,7 +469,6 @@ async def on_duration_input(
         )
         return
 
-    number = int(message.text)
     adapter = DialogDataAdapter(dialog_manager)
     plan = adapter.load(PlanDto)
 
