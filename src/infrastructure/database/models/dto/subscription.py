@@ -1,20 +1,24 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Optional
-
-from src.core.utils.formatters import format_bytes_to_gb, format_device_count
+from typing import TYPE_CHECKING, Any, Optional, Union
 
 if TYPE_CHECKING:
     from .plan import PlanSnapshotDto
     from .user import BaseUserDto
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from uuid import UUID
 
 from pydantic import BaseModel, Field
 from remnawave.enums import TrafficLimitStrategy
 
 from src.core.enums import PlanType, SubscriptionStatus
+from src.core.utils.formatters import (
+    format_bytes_to_gb,
+    format_device_count,
+    i18n_format_expire_time,
+)
+from src.core.utils.time import datetime_now
 
 from .base import TrackableDto
 
@@ -81,11 +85,30 @@ class BaseSubscriptionDto(TrackableDto):
 
     @property
     def is_active(self) -> bool:
-        return self.status == SubscriptionStatus.ACTIVE
+        return self.get_status == SubscriptionStatus.ACTIVE
 
     @property
     def is_unlimited(self) -> bool:
         return self.expire_at.year == 2099
+
+    @property
+    def get_status(self) -> SubscriptionStatus:
+        if datetime_now() > self.expire_at:
+            return SubscriptionStatus.EXPIRED
+        return self.status
+
+    @property
+    def get_traffic_reset_delta(self) -> Optional[timedelta]:
+        from src.services.subscription import SubscriptionService  # noqa: PLC0415
+
+        return SubscriptionService.get_traffic_reset_delta(self.plan.traffic_limit_strategy)
+
+    @property
+    def get_expire_time(self) -> Union[list[tuple[str, dict[str, int]]], bool]:
+        if self.get_traffic_reset_delta:
+            return i18n_format_expire_time(self.get_traffic_reset_delta)
+        else:
+            return False
 
     @property
     def get_subscription_type(self) -> PlanType:

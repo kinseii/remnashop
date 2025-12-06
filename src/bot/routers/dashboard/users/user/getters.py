@@ -76,7 +76,7 @@ async def user_getter(
     if subscription:
         data.update(
             {
-                "status": subscription.status,
+                "status": subscription.get_status,
                 "is_trial": subscription.is_trial,
                 "traffic_limit": i18n_format_traffic_limit(subscription.traffic_limit),
                 "device_limit": i18n_format_device_limit(subscription.device_limit),
@@ -125,7 +125,7 @@ async def subscription_getter(
         "url": remna_user.subscription_url,
         #
         "subscription_id": str(subscription.user_remna_id),
-        "subscription_status": subscription.status,
+        "subscription_status": subscription.get_status,
         "traffic_used": i18n_format_bytes_to_unit(
             remna_user.used_traffic_bytes,
             min_unit=ByteUnitKey.MEGABYTE,

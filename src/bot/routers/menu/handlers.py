@@ -12,6 +12,7 @@ from src.bot.keyboards import CALLBACK_CHANNEL_CONFIRM, CALLBACK_RULES_ACCEPT
 from src.bot.states import MainMenu
 from src.core.constants import USER_KEY
 from src.core.enums import MediaType
+from src.core.i18n.translator import get_translated_kwargs
 from src.core.utils.formatters import format_user_log as log
 from src.core.utils.message_payload import MessagePayload
 from src.infrastructure.database.models.dto import PlanSnapshotDto, UserDto
@@ -115,10 +116,20 @@ async def show_reason(
     i18n: FromDishka[TranslatorRunner],
 ) -> None:
     user: UserDto = dialog_manager.middleware_data[USER_KEY]
-    status = user.current_subscription.status if user.current_subscription else False
+    subscription = user.current_subscription
+
+    if subscription:
+        kwargs = {
+            "status": subscription.get_status,
+            "is_trial": subscription.is_trial,
+            "traffic_strategy": subscription.plan.traffic_limit_strategy,
+            "reset_time": subscription.get_expire_time,
+        }
+    else:
+        kwargs = {"status": False}
 
     await callback.answer(
-        text=i18n.get("ntf-connect-not-available", status=status),
+        text=i18n.get("ntf-connect-not-available", **get_translated_kwargs(i18n, kwargs)),
         show_alert=True,
     )
 

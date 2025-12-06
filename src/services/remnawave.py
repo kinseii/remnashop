@@ -7,6 +7,7 @@ from fluentogram import TranslatorHub
 from loguru import logger
 from redis.asyncio import Redis
 from remnawave import RemnawaveSDK
+from remnawave.exceptions import NotFoundError
 from remnawave.models import (
     CreateUserRequestDto,
     DeleteUserHwidDeviceResponseDto,
@@ -15,6 +16,7 @@ from remnawave.models import (
     GetUserHwidDevicesResponseDto,
     HWIDDeleteRequest,
     HwidUserDeviceDto,
+    TelegramUserResponseDto,
     UpdateUserRequestDto,
     UserResponseDto,
 )
@@ -108,6 +110,7 @@ class RemnawaveService(BaseService):
             )
             created_user = await self.remnawave.users.create_user(
                 CreateUserRequestDto(
+                    uuid=subscription.user_remna_id,
                     expire_at=subscription.expire_at,
                     username=user.remna_name,
                     traffic_limit_bytes=format_gb_to_bytes(subscription.traffic_limit),
@@ -214,11 +217,19 @@ class RemnawaveService(BaseService):
 
         if not user.current_subscription:
             logger.warning(f"No current subscription for user '{user.telegram_id}'")
-            return False
 
-        result = await self.remnawave.users.delete_user(
-            uuid=str(user.current_subscription.user_remna_id),
-        )
+            users_result = await self.remnawave.users.get_users_by_telegram_id(
+                telegram_id=str(user.telegram_id)
+            )
+
+            if not isinstance(users_result, TelegramUserResponseDto) or not users_result:
+                return False
+
+            uuid = users_result[0].uuid
+        else:
+            uuid = user.current_subscription.user_remna_id
+
+        result = await self.remnawave.users.delete_user(uuid=str(uuid))
 
         if not isinstance(result, DeleteUserResponseDto):
             raise ValueError("Failed to delete RemnaUser: unexpected response")
@@ -273,7 +284,10 @@ class RemnawaveService(BaseService):
 
     async def get_user(self, uuid: UUID) -> Optional[UserResponseDto]:
         logger.info(f"Fetching RemnaUser '{uuid}'")
-        remna_user = await self.remnawave.users.get_user_by_uuid(str(uuid))
+        try:
+            remna_user = await self.remnawave.users.get_user_by_uuid(str(uuid))
+        except NotFoundError:
+            return None
 
         if not isinstance(remna_user, UserResponseDto):
             logger.warning(f"RemnaUser '{uuid}' not found")
@@ -419,12 +433,6 @@ class RemnawaveService(BaseService):
             logger.debug(f"RemnaUser '{remna_user.telegram_id}' deleted")
             await delete_current_subscription_task.kiq(user_telegram_id=remna_user.telegram_id)
 
-        elif remna_user.expire_at + timedelta(days=2) < datetime_now():  # type: ignore[operator]
-            logger.debug(
-                f"Subscription for RemnaUser '{user.telegram_id}' expired more than 2 days ago, "
-                "skipping — most likely an imported user"
-            )
-
         elif event in {
             RemnaUserEvent.REVOKED,
             RemnaUserEvent.ENABLED,
@@ -445,6 +453,13 @@ class RemnawaveService(BaseService):
                     i18n_kwargs=i18n_kwargs,
                 )
             elif event == RemnaUserEvent.EXPIRED:
+                if remna_user.expire_at + timedelta(days=3) < datetime_now():  # type: ignore[operator]
+                    logger.debug(
+                        f"Subscription for RemnaUser '{user.telegram_id}' expired more than "
+                        "3 days ago, skipping - most likely an imported user"
+                    )
+                    return
+
                 await send_subscription_expire_notification_task.kiq(
                     remna_user=remna_user,
                     ntf_type=UserNotificationType.EXPIRED,

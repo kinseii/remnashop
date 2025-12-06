@@ -181,6 +181,7 @@ btn-broadcast =  { $status ->
 # Go to
 btn-goto-subscription = 💳 Купить подписку
 btn-goto-promocode = 🎟 Активировать промокод
+btn-goto-invite = 👥 Пригласить
 btn-goto-subscription-renew = 🔄 Продлить подписку
 btn-goto-user-profile = 👤 Перейти к пользователю
 

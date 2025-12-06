@@ -1,5 +1,5 @@
 from datetime import timedelta
-from typing import Union
+from typing import Optional, Union
 from uuid import UUID
 
 from aiogram.types import CallbackQuery, Message
@@ -896,6 +896,7 @@ async def on_sync(
         raise ValueError(f"User '{target_telegram_id}' not found")
 
     bot_subscription = await subscription_service.get_current(target_telegram_id)
+    remna_subscription: Optional[RemnaSubscriptionDto] = None
 
     try:
         result = await remnawave.users.get_users_by_telegram_id(telegram_id=str(target_telegram_id))
@@ -905,14 +906,15 @@ async def on_sync(
     except NotFoundError:
         result = None
 
-    if not result and not target_user.has_subscription:
+    if not result and not bot_subscription:
         await notification_service.notify_user(
             user=user,
             payload=MessagePayload(i18n_key="ntf-user-sync-missing-data"),
         )
         return
 
-    remna_subscription = RemnaSubscriptionDto.from_remna_user(result[0].model_dump())
+    if result:
+        remna_subscription = RemnaSubscriptionDto.from_remna_user(result[0].model_dump())
 
     if SubscriptionService.subscriptions_match(bot_subscription, remna_subscription):
         await notification_service.notify_user(
@@ -931,6 +933,7 @@ async def on_sync_from_remnawave(
     dialog_manager: DialogManager,
     remnawave: FromDishka[RemnawaveSDK],
     remnawave_service: FromDishka[RemnawaveService],
+    subscription_service: FromDishka[SubscriptionService],
     user_service: FromDishka[UserService],
     notification_service: FromDishka[NotificationService],
 ) -> None:
@@ -941,6 +944,8 @@ async def on_sync_from_remnawave(
     if not target_user:
         raise ValueError(f"User '{target_telegram_id}' not found")
 
+    subscription = await subscription_service.get_current(target_telegram_id)
+
     try:
         result = await remnawave.users.get_users_by_telegram_id(telegram_id=str(target_telegram_id))
 
@@ -950,17 +955,18 @@ async def on_sync_from_remnawave(
         result = None
 
     if not result:
-        await notification_service.notify_user(
-            user=user,
-            payload=MessagePayload(i18n_key="ntf-user-sync-failed"),
-        )
+        if subscription:
+            subscription.status = SubscriptionStatus.DELETED
+            await subscription_service.update(subscription)
+
+        await user_service.delete_current_subscription(user.telegram_id)
     else:
         await remnawave_service.sync_user(result[0], creating=False)
-        await notification_service.notify_user(
-            user=user,
-            payload=MessagePayload(i18n_key="ntf-user-sync-success"),
-        )
 
+    await notification_service.notify_user(
+        user=user,
+        payload=MessagePayload(i18n_key="ntf-user-sync-success"),
+    )
     await dialog_manager.switch_to(state=DashboardUser.MAIN)
 
 
@@ -984,24 +990,28 @@ async def on_sync_from_remnashop(
     subscription = await subscription_service.get_current(target_telegram_id)
 
     if not subscription:
-        raise ValueError(f"Current subscription for user '{target_telegram_id}' not found")
-
-    remna_user = remnawave_service.get_user(subscription.user_remna_id)
-    if remna_user:
-        await remnawave_service.updated_user(
-            user=target_user,
-            uuid=subscription.user_remna_id,
-            subscription=subscription,
-        )
-
+        await remnawave_service.delete_user(target_user)
     else:
-        await remnawave_service.create_user(user=target_user, subscription=subscription)
+        remna_user = await remnawave_service.get_user(subscription.user_remna_id)
+        if remna_user:
+            await remnawave_service.updated_user(
+                user=target_user,
+                uuid=subscription.user_remna_id,
+                subscription=subscription,
+            )
+
+        else:
+            created_user = await remnawave_service.create_user(
+                user=target_user,
+                subscription=subscription,
+            )
+
+        await remnawave_service.sync_user(created_user, creating=False)
 
     await notification_service.notify_user(
         user=user,
         payload=MessagePayload(i18n_key="ntf-user-sync-success"),
     )
-
     await dialog_manager.switch_to(state=DashboardUser.MAIN)
 
 
