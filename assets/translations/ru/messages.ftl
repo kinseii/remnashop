@@ -404,6 +404,7 @@ msg-user-sync-version = { $version ->
     }
 
 msg-user-sync-subscription =
+    • <b>ID</b>: <code>{ $id }</code>
     • Статус: { $status -> 
     [ACTIVE] Активна
     [DISABLED] Отключена
@@ -664,7 +665,7 @@ msg-remnawave-inbounds =
 
 
 # RemnaShop
-msg-remnashop-main = <b>🛍 RemnaShop</b>
+msg-remnashop-main = <b>🛍 RemnaShop v{ $version }</b>
 msg-admins-main = <b>👮‍♂️ Администраторы</b>
 
 
