@@ -19,6 +19,7 @@ from src.core.utils.formatters import (
     i18n_format_device_limit,
     i18n_format_traffic_limit,
 )
+from src.core.config import AppConfig
 from src.core.utils.message_payload import MessagePayload
 from src.core.utils.time import datetime_now
 from src.core.utils.types import RemnaUserDto
@@ -135,6 +136,7 @@ async def purchase_subscription_task(
     subscription_service: FromDishka[SubscriptionService],
     transaction_service: FromDishka[TransactionService],
     notification_service: FromDishka[NotificationService],
+    config: FromDishka[AppConfig],
 ) -> None:
     purchase_type = transaction.purchase_type
     user = cast(UserDto, transaction.user)
@@ -196,7 +198,7 @@ async def purchase_subscription_task(
                 user=user,
                 uuid=subscription.user_remna_id,
                 plan=plan,
-                reset_traffic=True,
+                reset_traffic=config.remnawave.reset_traffic_on_change,
             )
             new_subscription = SubscriptionDto(
                 user_remna_id=updated_user.uuid,

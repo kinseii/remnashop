@@ -1068,6 +1068,7 @@ async def on_subscription_duration_select(
     plan_service: FromDishka[PlanService],
     subscription_service: FromDishka[SubscriptionService],
     remnawave_service: FromDishka[RemnawaveService],
+    config: FromDishka[AppConfig],
 ) -> None:
     user: UserDto = dialog_manager.middleware_data[USER_KEY]
     logger.info(f"{log(user)} Selected duration '{selected_duration}'")
@@ -1091,7 +1092,7 @@ async def on_subscription_duration_select(
             user=target_user,
             uuid=subscription.user_remna_id,
             plan=plan_snapshot,
-            reset_traffic=True,
+            reset_traffic=config.remnawave.reset_traffic_on_change,
         )
     else:
         remna_user = await remnawave_service.create_user(user=target_user, plan=plan_snapshot)

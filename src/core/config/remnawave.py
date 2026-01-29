@@ -17,6 +17,7 @@ class RemnawaveConfig(BaseConfig, env_prefix="REMNAWAVE_"):
     caddy_token: SecretStr = SecretStr("")
     webhook_secret: SecretStr
     cookie: SecretStr = SecretStr("")
+    reset_traffic_on_change: bool = True
 
     @property
     def is_external(self) -> bool:
