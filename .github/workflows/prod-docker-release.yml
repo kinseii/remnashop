@@ -6,6 +6,10 @@ on:
 
   workflow_dispatch:
 
+permissions:
+  contents: write
+  packages: write
+
 jobs:
   release:
     runs-on: ubuntu-latest
@@ -16,10 +20,13 @@ jobs:
         with:
           ref: main
           token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
 
-      - name: 🔖 Get latest tag
-        id: latest-tag
-        uses: JinoArch/get-latest-tag@latest
+      - name: 🔖 Get previous tag
+        id: previoustag
+        run: |
+          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          echo "previous_tag=$PREV_TAG" >> $GITHUB_OUTPUT
 
       - name: 🏷️ Define Build Args
         id: vars
@@ -28,10 +35,14 @@ jobs:
           BUILD_TIME=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
           IMAGE_REPO="ghcr.io/${GITHUB_REPOSITORY}"
           IMAGE_TAGS="${IMAGE_REPO}:latest,${IMAGE_REPO}:${GITHUB_REF_NAME}"
+          IMAGE_TAG_LATEST="${IMAGE_REPO}:latest"
+          IMAGE_TAG_VERSION="${IMAGE_REPO}:${GITHUB_REF_NAME}"
 
           echo "image_tag=${IMAGE_TAGS}" >> $GITHUB_OUTPUT
           echo "short_sha=${SHORT_SHA}" >> $GITHUB_OUTPUT
           echo "build_time=${BUILD_TIME}" >> $GITHUB_OUTPUT
+          echo "image_tag_latest=${IMAGE_TAG_LATEST}" >> $GITHUB_OUTPUT
+          echo "image_tag_version=${IMAGE_TAG_VERSION}" >> $GITHUB_OUTPUT
           echo "✅ Tags: ${IMAGE_TAGS}"
           echo "✅ SHA: ${SHORT_SHA}"
 
@@ -43,7 +54,7 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
-          password: ${{ secrets.GHCR_TOKEN }}
+          password: ${{ secrets.GITHUB_TOKEN }}
       - name: 🏗️ Build and Push Docker Image
         uses: docker/build-push-action@v5
         with:
@@ -72,7 +83,7 @@ jobs:
 
             ---
 
-            - [Compare changes (${{ steps.latest-tag.outputs.previousTag }}...${{ steps.latest-tag.outputs.latestTag }})](https://github.com/snoups/remnashop/compare/${{ steps.latest-tag.outputs.previousTag }}...${{ steps.latest-tag.outputs.latestTag }})
+            ${{ steps.previoustag.outputs.previous_tag != '' && format('- [Compare changes ({0}...{1})](https://github.com/snoups/remnashop/compare/{0}...{1})', steps.previoustag.outputs.previous_tag, github.ref_name) || '' }}
 
             ---
 
@@ -80,12 +91,12 @@ jobs:
 
             ### Latest:
             ```
-            ghcr.io/snoups/remnashop:latest
+            ${{ steps.vars.outputs.image_tag_latest }}
             ```
 
             ### Versioned:
             ```
-            ghcr.io/snoups/remnashop:${{ github.ref_name }}
+            ${{ steps.vars.outputs.image_tag_version }}
             ```
           draft: false
           prerelease: false
