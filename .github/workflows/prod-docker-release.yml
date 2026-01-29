@@ -16,10 +16,13 @@ jobs:
         with:
           ref: main
           token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
 
-      - name: 🔖 Get latest tag
-        id: latest-tag
-        uses: JinoArch/get-latest-tag@latest
+      - name: 🔖 Get previous tag
+        id: previoustag
+        run: |
+          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          echo "previous_tag=$PREV_TAG" >> $GITHUB_OUTPUT
 
       - name: 🏷️ Define Build Args
         id: vars
@@ -74,7 +77,7 @@ jobs:
 
             ---
 
-            - [Compare changes (${{ steps.latest-tag.outputs.previousTag }}...${{ steps.latest-tag.outputs.latestTag }})](https://github.com/snoups/remnashop/compare/${{ steps.latest-tag.outputs.previousTag }}...${{ steps.latest-tag.outputs.latestTag }})
+            ${{ steps.previoustag.outputs.previous_tag != '' && format('- [Compare changes ({0}...{1})](https://github.com/snoups/remnashop/compare/{0}...{1})', steps.previoustag.outputs.previous_tag, github.ref_name) || '' }}
 
             ---
 
